@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplayer Stress Test</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #111; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        #game-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        
+        /* Dashboard */
+        #dashboard {
+            pointer-events: auto;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #0f0;
+            padding: 15px;
+            border: 1px solid #0f0;
+            border-radius: 5px;
+            width: 300px;
+            max-height: 90vh;
+            overflow-y: auto;
+            display: none; /* Hidden by default until init */
+        }
+        
+        h1 { font-size: 16px; margin: 0 0 10px 0; text-transform: uppercase; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; }
+        .stat-val { font-weight: bold; }
+        
+        .control-group { margin-top: 15px; border-top: 1px solid #444; padding-top: 10px; }
+        button {
+            background: #004400;
+            color: #fff;
+            border: 1px solid #0f0;
+            padding: 5px 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 5px;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        button:hover { background: #006600; }
+        button.danger { background: #440000; border-color: #f00; }
+        button.danger:hover { background: #660000; }
+
+        /* Bot Container (Hidden iframes) */
+        #bot-farm { display: none; }
+        iframe { width: 1px; height: 1px; border: none; }
+
+        /* Loading */
+        #loading {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: #0f0; font-size: 24px; pointer-events: none;
+        }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://esm.sh/three@0.160.0",
+                "three/addons/": "https://esm.sh/three@0.160.0/examples/jsm/",
+                "nipplejs": "https://esm.sh/nipplejs@0.10.1",
+                "stats.js": "https://esm.sh/stats.js"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="loading">INITIALIZING UPLINK...</div>
+    <div id="game-container"></div>
+    <div id="bot-farm"></div>
+    
+    <div id="ui-layer">
+        <div id="dashboard">
+            <h1>System Status</h1>
+            <div class="stat-row"><span>Role:</span> <span id="stat-role" class="stat-val">...</span></div>
+            <div class="stat-row"><span>Peers (Visible):</span> <span id="stat-peers" class="stat-val">0</span></div>
+            <div class="stat-row"><span>Packets/Sec (In):</span> <span id="stat-pps-in" class="stat-val">0</span></div>
+            <div class="stat-row"><span>Packets/Sec (Out):</span> <span id="stat-pps-out" class="stat-val">0</span></div>
+            <div class="stat-row"><span>Latency (Est):</span> <span id="stat-ping" class="stat-val">0ms</span></div>
+            
+            <div class="control-group" id="host-controls">
+                <h1>Stress Tests</h1>
+                <button id="btn-add-1">Add 1 Bot</button>
+                <button id="btn-add-10">Add 10 Bots</button>
+                <button id="btn-add-50">Add 50 Bots</button>
+                <button id="btn-kill-all" class="danger">Kill All Bots</button>
+                <br>
+                <div class="stat-row" style="margin-top:5px;"><span>Bot Count:</span> <span id="stat-bots" class="stat-val">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./src/app.js"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
