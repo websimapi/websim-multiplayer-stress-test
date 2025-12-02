@@ -1,6 +1,89 @@
+// Provide a safe fallback if WebsimSocket is not available in this environment
+const WebsimSocketClass = (typeof WebsimSocket !== 'undefined')
+  ? WebsimSocket
+  : (typeof window !== 'undefined' && window.parent && window.parent.WebsimSocket)
+    ? window.parent.WebsimSocket
+    : null;
+
+// Lightweight local stub so the app doesn't crash if the real socket isn't present
+class LocalSocketStub {
+    constructor() {
+        this.clientId = `local-${Math.random().toString(36).slice(2)}`;
+        this.presence = {};
+        this.roomState = {};
+        this.peers = {};
+        this._presenceSubs = [];
+        this._roomSubs = [];
+        this.onmessage = () => {};
+    }
+
+    async initialize() {
+        // Immediately register this client as a "peer"
+        this.peers[this.clientId] = {
+            username: 'local-user',
+            avatarUrl: ''
+        };
+        this.presence[this.clientId] = {};
+        this._emitPresence();
+    }
+
+    updatePresence(presence) {
+        this.presence[this.clientId] = {
+            ...(this.presence[this.clientId] || {}),
+            ...presence
+        };
+        this._emitPresence();
+    }
+
+    updateRoomState(roomState) {
+        this.roomState = { ...this.roomState, ...roomState };
+        this._emitRoomState();
+    }
+
+    requestPresenceUpdate() {
+        // No-op in stub
+    }
+
+    subscribePresence(cb) {
+        this._presenceSubs.push(cb);
+        cb(this.presence);
+        return () => {
+            this._presenceSubs = this._presenceSubs.filter(fn => fn !== cb);
+        };
+    }
+
+    subscribeRoomState(cb) {
+        this._roomSubs.push(cb);
+        cb(this.roomState);
+        return () => {
+            this._roomSubs = this._roomSubs.filter(fn => fn !== cb);
+        };
+    }
+
+    subscribePresenceUpdateRequests() {
+        // No-op in stub
+        return () => {};
+    }
+
+    send() {
+        // No-op in stub
+    }
+
+    _emitPresence() {
+        this._presenceSubs.forEach(fn => fn(this.presence));
+    }
+
+    _emitRoomState() {
+        this._roomSubs.forEach(fn => fn(this.roomState));
+    }
+}
+
 export class NetworkManager {
     constructor(isBot = false) {
-        this.room = new WebsimSocket();
+        // Use real WebsimSocket when available, otherwise fall back to stub
+        const Socket = WebsimSocketClass || LocalSocketStub;
+
+        this.room = new Socket();
         this.isBot = isBot;
         this.peers = {};
         this.metrics = {
@@ -28,7 +111,7 @@ export class NetworkManager {
 
         // Handle custom events (like pings or game actions)
         this.room.onmessage = (event) => {
-            const data = event.data;
+            const data = event.data || event; // Stub may call directly with data
             this._packetCounter++;
             
             if (data.type === 'ping') {
@@ -37,13 +120,16 @@ export class NetworkManager {
                     this.room.send({ type: 'pong', senderId: this.room.clientId, timestamp: data.timestamp });
                 }
             } else if (data.type === 'pong') {
-                if (data.senderId === this.room.clientId) { // Wait, logic: I sent ping, I get pong
-                    // Actually pong logic usually is handling response
-                }
+                // Pong handling placeholder
             }
         };
 
-        console.log("Network Initialized. ID:", this.room.clientId);
+        console.log(
+            WebsimSocketClass
+                ? "Network Initialized with WebsimSocket. ID:"
+                : "Network Initialized with LocalSocketStub (no realtime backend). ID:",
+            this.room.clientId
+        );
     }
 
     // Broadcast my player state
