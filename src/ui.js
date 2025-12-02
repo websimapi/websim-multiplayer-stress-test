@@ -39,6 +39,14 @@ export class UIManager {
         document.getElementById('btn-kill-all').onclick = () => this.killAllBots();
     }
 
+    enableHostMode() {
+        if (this.mode === 'host') return;
+        this.mode = 'host';
+        this.stats.role.innerText = 'HOST';
+        document.getElementById('host-controls').style.display = 'block';
+        this.setupHostControls();
+    }
+
     spawnBots(count) {
         // Construct the URL for the bot
         // We use the same URL but add ?mode=bot

@@ -42,8 +42,39 @@ class App {
             this.world = new World(document.getElementById('game-container'), this.network);
             this.world.start();
 
+            // Broadcast Host status if started as host
+            if (this.mode === 'host') {
+                this.network.sendUpdate({ h: true });
+            }
+
             // Setup Input / PostMessage handling
             this.setupExternalControls();
+
+            // Key listener for claiming host
+            window.addEventListener('keydown', (e) => {
+                if (e.key === '`' || e.key === '~') {
+                    this.tryClaimHost();
+                }
+            });
+        }
+    }
+
+    tryClaimHost() {
+        if (this.mode === 'host' || this.isBot) return;
+
+        const peers = this.network.getPeers();
+        const myId = this.network.getMyId();
+        
+        // Check if any other peer is host (exclude self)
+        const existingHost = Object.entries(peers).some(([id, data]) => id !== myId && data.h === true);
+
+        if (!existingHost) {
+            console.log("Switching to Host Mode");
+            this.mode = 'host';
+            this.ui.enableHostMode();
+            this.network.sendUpdate({ h: true });
+        } else {
+            console.warn("Host already exists in room");
         }
     }
 
