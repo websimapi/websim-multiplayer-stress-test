@@ -48,17 +48,36 @@ export class UIManager {
     }
 
     spawnBots(count) {
-        // Construct the URL for the bot
-        // We use the same URL but add ?mode=bot
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('mode', 'bot');
+        // Construct the URL without params to rely on postMessage switching
+        const url = window.location.href.split('?')[0];
 
         for (let i = 0; i < count; i++) {
             const iframe = document.createElement('iframe');
-            iframe.src = currentUrl.toString();
+            iframe.src = url;
+            
+            iframe.onload = () => {
+                // Force into Bot Mode via postMessage
+                iframe.contentWindow.postMessage({ type: 'SET_MODE', mode: 'bot' }, '*');
+                
+                // Send a walk path
+                this.sendBotPath(iframe);
+            };
+
             this.botFarm.appendChild(iframe);
             this.botIframes.push(iframe);
         }
+    }
+
+    sendBotPath(iframe) {
+        const path = [];
+        const count = 5 + Math.floor(Math.random() * 5);
+        for(let i=0; i<count; i++) {
+            path.push({
+                x: (Math.random() - 0.5) * 80,
+                z: (Math.random() - 0.5) * 80
+            });
+        }
+        iframe.contentWindow.postMessage({ type: 'WALK_PATH', path }, '*');
     }
 
     killAllBots() {

@@ -9,12 +9,33 @@ export class BotClient {
         this.speed = 5 + Math.random() * 5; // units per sec
         this.lastUpdate = performance.now();
 
+        // Pathing control
+        this.path = [];
+        this.pathIndex = 0;
+        this.isControlled = false;
+
+        window.addEventListener('message', (e) => this.handleMessage(e));
+
         this.pickNewTarget();
     }
 
+    handleMessage(e) {
+        if (e.data.type === 'WALK_PATH' && Array.isArray(e.data.path)) {
+            this.path = e.data.path;
+            this.pathIndex = 0;
+            this.isControlled = true;
+            this.pickNewTarget();
+        }
+    }
+
     pickNewTarget() {
-        this.target.x = (Math.random() - 0.5) * 80;
-        this.target.z = (Math.random() - 0.5) * 80;
+        if (this.isControlled && this.path.length > 0) {
+            this.target = this.path[this.pathIndex];
+            this.pathIndex = (this.pathIndex + 1) % this.path.length;
+        } else {
+            this.target.x = (Math.random() - 0.5) * 80;
+            this.target.z = (Math.random() - 0.5) * 80;
+        }
     }
 
     start() {

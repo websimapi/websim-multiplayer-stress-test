@@ -28,12 +28,25 @@ export class World {
     }
 
     start() {
+        this.isRunning = true;
         this.initThree();
         this.initInput();
         this.animate();
 
         // Start network update loop
-        setInterval(() => this.networkLoop(), 50); // 20 updates per second
+        this.networkInterval = setInterval(() => this.networkLoop(), 50); // 20 updates per second
+    }
+
+    stop() {
+        this.isRunning = false;
+        if (this.networkInterval) clearInterval(this.networkInterval);
+        
+        if (this.renderer) {
+            this.renderer.dispose();
+            if (this.renderer.domElement && this.renderer.domElement.parentNode) {
+                this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
+            }
+        }
     }
 
     initThree() {
@@ -193,6 +206,7 @@ export class World {
     }
 
     animate() {
+        if (!this.isRunning) return;
         requestAnimationFrame(() => this.animate());
         this.stats.begin();
 
